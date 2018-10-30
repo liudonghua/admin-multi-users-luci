@@ -8,4 +8,10 @@ This is the OpenWrt "luci"-feed containing LuCI - OpenWrt Configuration Interfac
 
 copy root directory to feeds/luci directory.excute
 
-$ patch -p1 < luci17.01.patch
+$ patch -p1 < luci_17.01.patch
+
+for lede-17.01 branch
+
+$ patch -p1 < luci_18.06.patch
+
+for openwrt-18.06 branch

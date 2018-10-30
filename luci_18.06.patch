@@ -1,0 +1,159 @@
+diff --git a/collections/luci/Makefile b/collections/luci/Makefile
+index c3174e8..e9b561e 100644
+--- a/collections/luci/Makefile
++++ b/collections/luci/Makefile
+@@ -9,14 +9,10 @@ include $(TOPDIR)/rules.mk
+ LUCI_TYPE:=col
+ LUCI_BASENAME:=luci
+ 
+-LUCI_TITLE:=LuCI interface with Uhttpd as Webserver (default)
+-LUCI_DESCRIPTION:=Standard OpenWrt set including full admin with ppp support and the default Bootstrap theme
++LUCI_TITLE:=Standard OpenWrt set including full admin with ppp support and the default Bootstrap theme
+ LUCI_DEPENDS:= \
+-	+uhttpd +luci-mod-admin-full +luci-theme-bootstrap \
+-	+luci-app-firewall +luci-proto-ppp +libiwinfo-lua +IPV6:luci-proto-ipv6 \
+-	+rpcd-mod-rrdns
+-
+-PKG_LICENSE:=Apache-2.0
++	+uhttpd +uhttpd-mod-ubus +luci-mod-admin-full +luci-theme-material \
++	+luci-app-firewall +luci-proto-ppp +libiwinfo-lua
+ 
+ include ../../luci.mk
+ 
+diff --git a/modules/luci-base/luasrc/dispatcher.lua b/modules/luci-base/luasrc/dispatcher.lua
+index 6cf2712..5e2edc9 100644
+--- a/modules/luci-base/luasrc/dispatcher.lua
++++ b/modules/luci-base/luasrc/dispatcher.lua
+@@ -8,6 +8,9 @@ local util = require "luci.util"
+ local http = require "luci.http"
+ local nixio = require "nixio", require "nixio.util"
+ 
++if fs.stat("/usr/lib/lua/luci/users.lua") then multi_user = true end
++if multi_user then usw = require "luci.users" end
++
+ module("luci.dispatcher", package.seeall)
+ context = util.threadlocal()
+ uci = require "luci.model.uci"
+@@ -487,7 +490,24 @@ function dispatch(request)
+ 			return true
+ 		end
+ 	end
+-
++	if multi_user then
++		local nuser = http.getenv("HTTP_AUTH_USER")
++		if nuser ~= "root" then
++			if ctx.authuser ~= "root" then
++				if ctx.authuser ~= nil and nuser ~= "root" then
++					local username = nuser or ctx.authuser
++					local menus = {}
++					usw.hide_menus(username,menus)
++					for i,v in pairs(menus) do
++					  local adminode = get(v)
++					  adminode.hidden = true
++					  adminode.target = false
++					end
++ 
++				end
++			end
++		end
++	end
+ 	if type(target) == "function" then
+ 		util.copcall(function()
+ 			local oldenv = getfenv(target)
+@@ -1001,3 +1021,27 @@ translate = i18n.translate
+ function _(text)
+ 	return text
+ end
++
++if multi_user then
++	function get_user()
++		local fs = require "nixio.fs"
++		local http = require "luci.http"
++		local util = require "luci.util"
++		local sess = luci.http.getcookie("sysauth")
++		local sdat = (util.ubus("session", "get", { ubus_rpc_session = sess }) or { }).values
++		if sdat and sdat.username then 
++			user = sdat.username
++			return(user)
++		elseif http.formvalue("luci_username") then
++			user = http.formvalue("luci_username")
++			return(user)
++		elseif http.getenv("HTTP_AUTH_USER") then
++			user = http.getenv("HTTP_AUTH_USER")
++			return(user)
++		else
++			user = "nobody"
++			return(user)
++		end
++	end
++ end
++
+diff --git a/modules/luci-mod-admin-full/luasrc/controller/admin/index.lua b/modules/luci-mod-admin-full/luasrc/controller/admin/index.lua
+index cc8c2e3..e7dec98 100644
+diff --git a/modules/luci-base/luasrc/controller/admin/servicectl.lua b/modules/luci-base/luasrc/controller/admin/servicectl.lua
+index 1d73eb4..408f420 100644
+--- a/modules/luci-base/luasrc/controller/admin/servicectl.lua
++++ b/modules/luci-base/luasrc/controller/admin/servicectl.lua
+@@ -4,7 +4,20 @@
+ module("luci.controller.admin.servicectl", package.seeall)
+ 
+ function index()
+-	entry({"servicectl"}, alias("servicectl", "status")).sysauth = "root"
++--## Multi User ##--
++local fs = require "nixio.fs"
++local valid_users = {}
++
++--## load system users into tbl ##--
++  if fs.stat("/usr/lib/lua/luci/users.lua") then
++    local usw = require "luci.users"
++    valid_users = usw.login()
++  else
++--## no multi user so root is only valid user ##--
++    valid_users = { "root" }
++  end
++
++	entry({"servicectl"}, alias("servicectl", "status")).sysauth = valid_users
+ 	entry({"servicectl", "status"}, call("action_status")).leaf = true
+ 	entry({"servicectl", "restart"}, post("action_restart")).leaf = true
+ end
+--- a/modules/luci-mod-admin-full/luasrc/controller/admin/index.lua
++++ b/modules/luci-mod-admin-full/luasrc/controller/admin/index.lua
+@@ -1,9 +1,24 @@
+ -- Copyright 2008 Steven Barth <steven@midlink.org>
+ -- Licensed to the public under the Apache License 2.0.
+ 
++--[[ multi-user support added by Hostle 12/12/14 ]]--
++
+ module("luci.controller.admin.index", package.seeall)
+ 
+ function index()
++--## Multi User ##--
++local fs = require "nixio.fs"
++local valid_users = {}
++
++--## load system users into tbl ##--
++  if fs.stat("/usr/lib/lua/luci/users.lua") then
++    local usw = require "luci.users"
++    valid_users = usw.login()
++  else
++--## no multi user so root is only valid user ##--
++    valid_users = { "root" }
++  end
++
+ 	local root = node()
+ 	if not root.target then
+ 		root.target = alias("admin")
+@@ -14,7 +29,7 @@ function index()
+ 	page.target  = firstchild()
+ 	page.title   = _("Administration")
+ 	page.order   = 10
+-	page.sysauth = "root"
++	page.sysauth = valid_users
+ 	page.sysauth_authenticator = "htmlauth"
+ 	page.ucidata = true
+ 	page.index = true
+@@ -40,3 +55,4 @@ function action_logout()
+ 
+ 	luci.http.redirect(dsp.build_url())
+ end
++
