@@ -85,8 +85,8 @@ index 0bd1945..c823de6 100644
 +		local util = require "luci.util"
 +		local sess = luci.http.getcookie("sysauth")
 +		local sdat = (util.ubus("session", "get", { ubus_rpc_session = sess }) or { }).values
-+		if sdat and sdat.username then 
-+			user = sdat.username
++		if sdat and sdat.user then 
++			user = sdat.user
 +			return(user)
 +		elseif http.formvalue("luci_username") then
 +			user = http.formvalue("luci_username")
@@ -101,34 +101,6 @@ index 0bd1945..c823de6 100644
 +	end
 + end
 +
-diff --git a/modules/luci-base/po/zh-cn/base.po b/modules/luci-base/po/zh-cn/base.po
-index 25bf011..4d150fc 100644
---- a/modules/luci-base/po/zh-cn/base.po
-+++ b/modules/luci-base/po/zh-cn/base.po
-@@ -3845,6 +3845,9 @@ msgstr "是"
- msgid "« Back"
- msgstr "« 后退"
- 
-+msgid "User"
-+msgstr "用户"
-+
- #~ msgid "Firewall Mark"
- #~ msgstr "防火墙标识"
- 
-diff --git a/modules/luci-base/po/zh-tw/base.po b/modules/luci-base/po/zh-tw/base.po
-index 1e63c69..e6d67c1 100644
---- a/modules/luci-base/po/zh-tw/base.po
-+++ b/modules/luci-base/po/zh-tw/base.po
-@@ -3852,6 +3852,9 @@ msgstr "是的"
- msgid "« Back"
- msgstr "« 倒退"
- 
-+msgid "User"
-+msgstr "用户"
-+
- #~ msgid "Leasetime"
- #~ msgstr "租賃時間"
- 
 diff --git a/modules/luci-mod-admin-full/luasrc/controller/admin/index.lua b/modules/luci-mod-admin-full/luasrc/controller/admin/index.lua
 index cc8c2e3..e7dec98 100644
 --- a/modules/luci-mod-admin-full/luasrc/controller/admin/index.lua
