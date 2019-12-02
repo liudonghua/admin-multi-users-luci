@@ -2,12 +2,12 @@
 
 ## Description
 
-This is the OpenWrt "luci"-feed containing LuCI - OpenWrt Configuration Interface forked from openwrt/luci and Hostle/openwrt-luci-multi-user with multi user management.
+This is the OpenWrt "luci"-feed containing LuCI - OpenWrt Configuration Interface sourced from [openwrt/luci](https://github.com/openwrt/luci) and [Hostle/openwrt-luci-multi-user](https://github.com/Hostle/openwrt-luci-multi-user) with multi user management.
 
 ## Usage
 
 copy root directory to feeds/luci directory.excute
-``` shell
+``` shella
 cd luci
 
 cp -rf /path-to-project ./
