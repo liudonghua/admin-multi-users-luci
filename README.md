@@ -16,3 +16,7 @@ patch -p1 < luci_17.01.patch #for lede-17.01 branch
 
 patch -p1 < luci_18.06.patch #for openwrt-18.06 branch
 ```
+
+## photoshots
+
+![image](https://github.com/liudonghua/admin-multi-users-luci/blob/master/images/photoshot.jpg)
