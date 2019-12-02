@@ -19,4 +19,4 @@ patch -p1 < luci_18.06.patch #for openwrt-18.06 branch
 
 ## photoshots
 
-![image](https://github.com/liudonghua/admin-multi-users-luci/blob/master/images/photoshot.jpg)
+![image](https://github.com/liudonghua/admin-multi-users-luci/blob/master/images/photoshot.png)
