@@ -12,7 +12,7 @@ cd luci
 
 cp -rf /path-to-project ./
 
-patch -p1 < luci_17.01.patch \#for lede-17.01 branch
+patch -p1 < luci_17.01.patch #for lede-17.01 branch
 
-patch -p1 < luci_18.06.patch \#for openwrt-18.06 branch
+patch -p1 < luci_18.06.patch #for openwrt-18.06 branch
 ```
