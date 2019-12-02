@@ -6,12 +6,11 @@ This is the OpenWrt "luci"-feed containing LuCI - OpenWrt Configuration Interfac
 
 ## Usage
 
-copy root directory to feeds/luci directory.excute
+copy root directory to feeds/luci directory.excute ///shell
+cd luci
 
-$ patch -p1 < luci_17.01.patch
+cp -rf /path-to-project ./
 
-for lede-17.01 branch
+patch -p1 < luci_17.01.patch \#for lede-17.01 branch
 
-$ patch -p1 < luci_18.06.patch
-
-for openwrt-18.06 branch
+patch -p1 < luci_18.06.patch \#for openwrt-18.06 branch
